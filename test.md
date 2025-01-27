@@ -1,7 +1,8 @@
 
 
 ## Схема сети 
-![Demo2025](https://github.com/user-attachments/assets/a5cfcdd1-d9ce-4e34-b44b-d2630219103a)
+
+![Demo2025](https://github.com/user-attachments/assets/84b0a8d8-d8f7-40be-a563-453d1cd6d66c)
 
 
 ## Выполнение
@@ -81,9 +82,11 @@ hostname HQ-RTR
 
   [Systemd-networkd](https://www.altlinux.org/Systemd-networkd)
   
+## Схема сети
 
+![Uploading Demo2025.png…]()
 
-
+## Адресация устройств
 
 | Имя устройства | IP - Адрес  | Интерфейс | Шлюз по умолчанию | 
 |:---------:|:--------------------------:|:--------------------------:|:--------------------:|
