@@ -60,7 +60,7 @@ hostname HQ-RTR
 
   Примечание:
 
-  Для работоспособности необходимо выбрать один из двух сетевых менеджеров - systemd-networkd и network (etcnet). Systemd-networkd блокирует назначение адреса после    перезагрузки для network.
+  Для работоспособности необходимо выбрать один из двух сетевых менеджеров - systemd-networkd или network (etcnet). Systemd-networkd блокирует назначение адреса после    перезагрузки для network.
 
    Настройка файла для systemd-networkd
   ``` yml
