@@ -1,8 +1,6 @@
 
 
-## Схема сети 
 
-![Demo2025](https://github.com/user-attachments/assets/84b0a8d8-d8f7-40be-a563-453d1cd6d66c)
 
 
 ## Выполнение
@@ -84,7 +82,8 @@ hostname HQ-RTR
   
 ## Схема сети
 
-![Uploading Demo2025.png…]()
+![Demo2025](https://github.com/user-attachments/assets/27ce1893-c254-4d1d-8241-83ddd296db90)
+
 
 ## Адресация устройств
 
