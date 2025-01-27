@@ -50,8 +50,33 @@ hostname HQ-RTR
   ```
   Указываем адрес в файле ipv4address
   ``` bash
-  echo 192.168.200.10/28 > /etc/net/ifaces/<имя интерфейса>/ipv4address 
+  echo 192.168.200.10/28 > /etc/net/ifaces/<имя интерфейса>/ipv4address
+  ```
+  Указываем маршрут по умолчанию в ipv4route
+  ``` bash
+  echo default via 192.168.200.1 > /etc/net/ifaces/<имя интерфейса>/ipv4route
+  ```
 
+  Примечание:
+  Для работоспособности необходимо выбрать один из двух сетевых менеджеров - systemd-networkd и network (etcnet). Systemd-networkd блокирует назначение адреса после    перезагрузки для network.
+
+   Настройка файла для systemd-networkd
+  ``` yml
+  [Match]
+  Name = enp0s3
+
+  [Network]
+  IPv6AcceptRA = false
+  Address = 192.168.0.196/24
+  Gateway = 192.168.0.1
+  Domains = test.alt
+  DNS = 8.8.8.8
+  ```
+  Оставляю ссылки на статьи:
+
+  [Настройка сети](https://www.altlinux.org/%D0%9D%D0%B0%D1%81%D1%82%D1%80%D0%BE%D0%B9%D0%BA%D0%B0_%D1%81%D0%B5%D1%82%D0%B8#Etcnet)
+
+  [Systemd-networkd](https://www.altlinux.org/Systemd-networkd)
   
 
 
