@@ -88,6 +88,11 @@ cat /etc/apt/sources.list | ssh locadm@172.16.4.2 'cat >> /home/locadm/list.txt'
 ``` bash
 net.ipv4.ip_forward=1
 ```
+Для применения параметров:
+```bash
+sysctl -p
+```
+
 ### 2. Настройка ISP
 
 #### iptables
@@ -98,9 +103,12 @@ apt install iptables iptables-persistent
 ```
 Создание правил iptables на ISP
 ``` bash
-iptables –t nat –A POSTROUTING –s 172.16.4.0/28 –o ens192 –j MASQUERADE  
-iptables –t nat –A POSTROUTING –s 172.16.5.0/28 –o ens192 –j MASQUERADE  
+iptables –t nat –A POSTROUTING –s 172.16.4.0/28 –o ens18 –j MASQUERADE  
+iptables –t nat –A POSTROUTING –s 172.16.5.0/28 –o ens18 –j MASQUERADE  
 iptables-save > /etc/iptables/rules.v4
 ```
+В опции -o должен быть именно out-interface выходящий во внешнюю сеть (прокололся на этом)
+
+
 
 
