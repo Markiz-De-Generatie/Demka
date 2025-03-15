@@ -65,6 +65,10 @@ iface ens20 inet static
 address 172.16.5.1
 netmask 255.255.255.240
 ```
+Также нужно не забыть добавить машрут по умолчанию:
+```bash
+ip route add default via <IP gate>
+```
 Для того чтобы иметь возможность устанавливать пакеты нужно привести файл /etc/apt/sources.list на всех машинах к следующему виду:
 
 ``` bash
@@ -83,6 +87,20 @@ cat /etc/apt/sources.list | ssh locadm@172.16.4.2 'cat >> /home/locadm/list.txt'
 Для того чтобы работала машрутизация на устройствах ISP, HQ-RTR, BR-RTR нужно включить параметр ядра отвечающий за маршрутизацию IP пакетов в файле /etc/sysctl.conf
 ``` bash
 net.ipv4.ip_forward=1
+```
+### 2. Настройка ISP
+
+#### iptables
+
+Установка необходимых пакетов для iptables:
+``` bash
+apt install iptables iptables-persistent
+```
+Создание правил iptables на ISP
+``` bash
+iptables –t nat –A POSTROUTING –s 172.16.4.0/28 –o ens192 –j MASQUERADE  
+iptables –t nat –A POSTROUTING –s 172.16.5.0/28 –o ens192 –j MASQUERADE  
+iptables-save > /etc/iptables/rules.v4
 ```
 
 
