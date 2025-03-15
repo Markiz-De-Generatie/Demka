@@ -12,14 +12,12 @@
 Для быстрой смены имени хоста нужно ввести соответствущую команду и перелогиниться.
  
 ``` bash
-hostnamectl hostname ISP;newgrp``
+hostnamectl hostname ISP;newgrp
 ```
-
 
 
 ## Схема сети
 ![Network_Scheme](https://github.com/user-attachments/assets/975b24d0-d734-4695-b3b1-154282d90b6c)
-
 
 
 
@@ -39,3 +37,52 @@ hostnamectl hostname ISP;newgrp``
 |     HQ-RTR     |           172.16.50.10/27          |    ens18   | 172.16.50.1       |  
 |     BR-RTR    |           172.16.50.10/27          |    ens18   | 172.16.50.1       |  
 |     BR-RTR    |           172.16.50.10/27          |    ens18   | 172.16.50.1       |  
+
+- Настройка IP-адресации на хостах проводится в файле /etc/network/interafaces
+
+  Пример настроенного файла на ISP:
+``` bash
+  # This file describes the network interfaces available on your system
+# and how to activate them. For more information, see interfaces(5).
+
+source /etc/network/interfaces.d/*
+
+# The loopback network interface
+auto lo
+iface lo inet loopback
+
+# The primary network interface
+allow-hotplug ens18
+iface ens18 inet dhcp
+
+auto ens19
+iface ens19 inet static
+address 172.16.4.1
+netmask 255.255.255.240
+
+auto ens20
+iface ens20 inet static
+address 172.16.5.1
+netmask 255.255.255.240
+```
+Для того чтобы иметь возможность устанавливать пакеты нужно привести файл /etc/apt/sources.list на всех машинах к следующему виду:
+
+``` bash
+deb https://deb.debian.org/debian bookworm main non-free-firmware
+deb-src https://deb.debian.org/debian bookworm main non-free-firmware
+
+deb https://deb.debian.org/debian bookworm-updates main non-free-firmware
+deb-src https://deb.debian.org/debian bookworm-updates main non-free-firmware
+```
+
+При настроенной сетевой связности,заполнить sources.list можно следующим образом:
+``` bash
+cat /etc/apt/sources.list | ssh locadm@172.16.4.2 'cat >> /home/locadm/list.txt'
+```
+
+Для того чтобы работала машрутизация на устройствах ISP, HQ-RTR, BR-RTR нужно включить параметр ядра отвечающий за маршрутизацию IP пакетов в файле /etc/sysctl.conf
+``` bash
+net.ipv4.ip_forward=1
+```
+
+
