@@ -18,8 +18,9 @@ hostnamectl hostname ISP;newgrp``
 
 
 ## Схема сети
+![Network_Scheme](https://github.com/user-attachments/assets/975b24d0-d734-4695-b3b1-154282d90b6c)
 
-![Demo2025](https://github.com/user-attachments/assets/27ce1893-c254-4d1d-8241-83ddd296db90)
+
 
 
 ## Адресация устройств
