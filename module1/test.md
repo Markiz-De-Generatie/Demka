@@ -157,6 +157,30 @@ iptables -t nat -A POSTROUTING -s 172.16.50.0/27 -o ens18 -j MASQUERADE
 iptables-save > /etc/iptables/rules.v4
 ```
 
+### 4. Создание локальных учетных записей
+Добавление пользователей на HQ-SRV и BR-SRV:
+``` bash
+useradd -m -d /home/sshuser -s /bin/bash -u 1010 sshuser
+passwd sshuser
+```
+Запуск sudo без дополнительной аутентификации:
+visudo /etc/sudoers
+``` bash
+sshuser ALL=(ALL:ALL) NOPASSWD: ALL
+```
+Добавление пользователей на HQ-RTR и BR-RTR:
+``` bash
+useradd -m -d /home/net_admin -s /bin/bash net_admin
+passwd net_admin
+```
+Запуск sudo без дополнительной аутентификации:
+``` bash
+net_admin ALL=(ALL:ALL) NOPASSWD: ALL
+```
+
+### 5. Настройка безопасного удаленного доступа на серверах HQ-SRV и BR-SRV:
+
+
 
 
 
