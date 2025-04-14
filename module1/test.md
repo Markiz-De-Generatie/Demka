@@ -109,6 +109,41 @@ iptables-save > /etc/iptables/rules.v4
 ```
 В опции -o должен быть именно out-interface выходящий во внешнюю сеть (прокололся на этом)
 
+### 3. Настройка HQ-RTR
+Настройка Inter VLAN routing, для этого необходимо установить следующие пакеты и подгрузить следующие модули:
+``` bash
+apt install vlan
+modprobe 8021q
+echo 8021q >> /etc/modules
+```
+Файл /etc/interfaces для HQ-RTR
+``` bash
+auto ens18
+iface ens18 inet static
+address 172.16.4.2
+netmask 255.255.255.240
+gateway 172.16.4.1
 
+auto ens19
+iface ens19 inet static
+address 172.16.100.1
+netmask 255.255.255.192
 
+auto ens19:1
+iface ens19:1 inet static
+address 172.16.200.1
+netmask 255.255.255.240
+
+auto ens19.100
+iface ens19.100 inet static
+address 172.16.100.3
+netmask 255.255.255.192
+vlan-raw-device ens19
+
+auto ens19.200
+iface ens19.200 inet static
+address 172.16.200.3
+netmask 255.255.255.240
+vlan-raw-device ens19:1
+```
 
