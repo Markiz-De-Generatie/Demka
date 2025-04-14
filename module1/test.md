@@ -116,7 +116,7 @@ apt install vlan
 modprobe 8021q
 echo 8021q >> /etc/modules
 ```
-Файл /etc/interfaces для HQ-RTR
+Файл /etc/network/interfaces для HQ-RTR
 ``` bash
 auto ens18
 iface ens18 inet static
@@ -146,4 +146,12 @@ address 172.16.200.3
 netmask 255.255.255.240
 vlan-raw-device ens19:1
 ```
+Создание правил iptables на HQ-RTR
+``` bash
+iptables –t nat –A POSTROUTING –s 172.16.100.0/26 –o ens18 –j MASQUERADE
+iptables -t nat -A POSTROUTING -s 172.16.200.0/28 -o ens18 -j MASQUERADE
+```
+
+
+
 
