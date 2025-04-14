@@ -179,10 +179,64 @@ net_admin ALL=(ALL:ALL) NOPASSWD: ALL
 ```
 
 ### 5. Настройка безопасного удаленного доступа на серверах HQ-SRV и BR-SRV:
+В файле /etc/ssh/sshd_config меняется порт на 2024 и добавляются опции для разрешения подключения только одного пользователя и других опций:
+``` bash
+Port 2024
+AllowUsers sshuser
+MaxAuthTries 2
+Banner /etc/ssh-banner
+```
+Содержимое /etc/ssh-banner
+```
+Authorized access only
+``` 
+### 6. Конфигурация IP тунеля между HQ и BR офисами:
 
-
-
-
+Необходимо подгрузить модуль для работы с GRE:
+``` bash
+echo "ip_gre" | tee -a /etc/modules
+```
+Далее необходимо добавить дополнительный виртуальный интерфейс посредством конфигурации файла /etc/network/interfaces:
+Пример файла на HQ-RTR
+``` bash
+auto tun1
+iface tun1 inet tunnel
+address 10.10.0.1
+netmask 255.255.255.252
+mode gre
+local 172.16.4.2
+endpoint 172.16.5.2
+ttl 64
+```
+Пример файла на BR-RTR
+``` bash
+auto tun1
+iface tun1 inet tunnel
+address 10.10.0.2
+netmask 255.255.255.252
+mode gre
+local 172.16.5.2
+endpoint 172.16.4.2
+ttl 64
+```
+### 7. Обеспечение динамической маршрутизации
+Установка пакета frr
+``` bash
+apt install frr
+```
+Включение протокола динамической маршрутизации OSPF
+``` bash
+nano /etc/frr/daemons
+ospfd=yes
+```
+Настройка ospf на HQ-RTR:
+``` bash
+router osfp
+#Отключение hello пакетов на всех интерфейсах
+passive-interface default
+network 172.16.200.0/26 area 1
+network 172.16.100.0/28 area 1
+network 10.10.0.0/30 area 0 
 
 
 
