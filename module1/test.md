@@ -108,7 +108,7 @@ iptables-save > /etc/iptables/rules.v4
 ```
 В опции -o должен быть именно out-interface выходящий во внешнюю сеть (прокололся на этом)
 
-### 3. Настройка HQ-RTR
+### 3. Настройка HQ-RTR и BR-RTR
 Настройка Inter VLAN routing, для этого необходимо установить следующие пакеты и подгрузить следующие модули:
 ``` bash
 apt install vlan
@@ -145,11 +145,19 @@ address 172.16.200.3
 netmask 255.255.255.240
 vlan-raw-device ens19:1
 ```
-Создание правил iptables на HQ-RTR
+Создание правил iptables на HQ-RTR 
 ``` bash
 iptables –t nat –A POSTROUTING –s 172.16.100.0/26 –o ens18 –j MASQUERADE
 iptables -t nat -A POSTROUTING -s 172.16.200.0/28 -o ens18 -j MASQUERADE
+iptables-save > /etc/iptables/rules.v4
 ```
+Создание правил iptables на BR-RTR
+``` bash
+iptables -t nat -A POSTROUTING -s 172.16.50.0/27 -o ens18 -j MASQUERADE
+iptables-save > /etc/iptables/rules.v4
+```
+
+
 
 
 
