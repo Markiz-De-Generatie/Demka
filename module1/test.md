@@ -236,7 +236,71 @@ router osfp
 passive-interface default
 network 172.16.200.0/26 area 1
 network 172.16.100.0/28 area 1
-network 10.10.0.0/30 area 0 
+network 10.10.0.0/30 area 0
+#Необязательная комадна, используется для совместимости
+area 0 authentication
+interface tun1
+no ip ospf passive
+ip ospf authentication
+ip ospf authentication-key password
+```
+Настройка ospf на BR-RTR:
+``` bash
+router osfp
+#Отключение hello пакетов на всех интерфейсах
+passive-interface default
+network 172.16.50.0/27 area 2
+network 10.10.0.0/30 area 0
+#Необязательная комадна, используется для совместимости
+area 0 authentication
+interface tun1
+no ip ospf passive
+ip ospf authentication
+ip ospf authentication-key password
+```
+### 8. Настройка автоматического распределения IP-адресов на HQ-RTR
+Установка isc-dhcp-server 
+```
+apt install isc-dhcp-server
+```
+В файле /etc/default/isc-dhcp-server 
+``` bash
+INTERFACES="ens19:1"
+```
+Содержимое файла /etc/dhcp/dhcpd.conf
+``` bash
+ddns-update-style interim;
+authoritative;
+subnet 172.16.200.0 netmask 255.255.255.240 {
+       range 172.16.200.4 172.16.200.14;
+       option domain-name-servers  172.16.100.10;
+       option domain-name "au-team.irpo";
+       default-lease-time 600;
+       max-lease-time 7200;
+}
+```
+На HQ-CLI в /etc/network/interfaces:
+```bash
+auto ens18
+iface ens18 inet dhcp
+```
 
+### 9. Настройка DNS сервера на HQ-SRV
+Устанавливаем bind и утилиты для преобразования имен:
+``` bash
+apt install bind9 dnsutils
+```
+Конфигурация файла /etc/bind/named.conf.options, в forwarders указываем DNS сервер для пересылки запросов:
+``` bash
+forwarders {
+      1.1.1.1;
+}
+```
+
+
+
+
+
+ 
 
 
