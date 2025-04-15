@@ -293,9 +293,28 @@ apt install bind9 dnsutils
 Конфигурация файла /etc/bind/named.conf.options, в forwarders указываем DNS сервер для пересылки запросов:
 ``` bash
 forwarders {
-      1.1.1.1;
+      8.8.8.8;
 }
+listen-on {any;};
+allow-recursion { 172.16.100.0/26; 172.16.50.0/27; 172.16.200.0/28; 10.10.0.0/30;};
+listen-on-v6 { none; };
 ```
+Копируем стандартные файлы зон 
+``` bash
+cp /etc/bind/db.local /etc/bind/au-team.irpo
+cp /etc/bind/db.127   /etc/bind/au-team.reverse
+```
+Прямая зона DNS:
+
+![image](https://github.com/user-attachments/assets/192586d5-4a93-4e58-9c7b-8817e1d300c4)
+
+Обратная зона DNS:
+
+![image](https://github.com/user-attachments/assets/aae2df3b-be36-4454-a867-84d825a83cd1)
+
+Файл /etc/bind/named.conf.default-zones, в нём прописываем все имеющиеся зоны:
+
+![image](https://github.com/user-attachments/assets/9ec5e6e3-fb46-436a-9f7e-c6d03cdbc7ba)
 
 
 
