@@ -316,6 +316,14 @@ cp /etc/bind/db.127   /etc/bind/au-team.reverse
 
 ![image](https://github.com/user-attachments/assets/9ec5e6e3-fb46-436a-9f7e-c6d03cdbc7ba)
 
+### 10. Настройка даты и времени согласно месту проведения экзамена
+
+Установка часового пояса выполняется с помощью следущей команды:
+``` bash
+timedatectl set-timezone Asia/Tomsk
+```
+
+
 
 
 
