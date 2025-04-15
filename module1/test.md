@@ -36,6 +36,8 @@ hostnamectl hostname ISP;newgrp
 |     HQ-RTR     |           172.16.200.3/27          |    ens19   | 172.16.200.1       |   
 |     BR-RTR    |           172.16.5.2/28          |    ens18   | 172.16.50.1       |  
 |     BR-RTR    |           172.16.50.1/27          |    ens19   | 172.16.50.1       |  
+| MGMT VLAN     |      172.16.99.0/29                |            |                  | 
+
 
 - Настройка IP-адресации на хостах проводится в файле /etc/network/interafaces
 
