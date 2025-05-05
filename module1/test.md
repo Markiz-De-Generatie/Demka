@@ -236,8 +236,8 @@ ospfd=yes
 router osfp
 #Отключение hello пакетов на всех интерфейсах
 passive-interface default
-network 172.16.200.0/26 area 1
-network 172.16.100.0/28 area 1
+network 172.16.200.0/28 area 1
+network 172.16.100.0/26 area 1
 network 10.10.0.0/30 area 0
 #Необязательная комадна, используется для совместимости
 area 0 authentication
@@ -281,6 +281,18 @@ subnet 172.16.200.0 netmask 255.255.255.240 {
        max-lease-time 7200;
 }
 ```
+Также важно учесть, что IP-адрес должен быть постоянным, не смотря на настройку динамического адреса для HQ-CLI, для этого нужно либо закрепить
+IP-адрес за "маком" HQ-CLI, либо настроить DDNS
+
+Закрепление "мака" в конфиге dhcpd:
+
+``` bash
+host myhost {
+        hardware ethernet bc:24:11:95:eb:f6;
+        fixed-address 172.16.200.4;
+        }
+```
+
 На HQ-CLI в /etc/network/interfaces:
 ```bash
 auto ens18
@@ -307,23 +319,179 @@ cp /etc/bind/db.local /etc/bind/au-team.irpo
 cp /etc/bind/db.127   /etc/bind/au-team.reverse
 ```
 Прямая зона DNS:
-
-![image](https://github.com/user-attachments/assets/192586d5-4a93-4e58-9c7b-8817e1d300c4)
-
+``` bash
+;
+; BIND data file for local loopback interface
+;
+$TTL    604800
+@       IN      SOA     au-team.irpo    root.au-team.irpo. (
+                              2         ; Serial
+                         604800         ; Refresh
+                          86400         ; Retry
+                        2419200         ; Expire
+                         604800 )       ; Negative Cache TTL
+;
+@       IN      NS      au-team.irpo.
+@       IN      A       172.16.100.10
+hq-rtr  IN      A       172.16.100.1
+hq-srv  IN      A       172.16.100.10
+br-rtr  IN      A       172.16.50.1
+br-srv  IN      A       172.16.50.10
+hq-cli  IN      A       172.16.200.5
+moodle  IN      CNAME   hq-rtr
+wiki    IN      CNAME   hq-rtr
+```
 Обратная зона DNS:
-
-![image](https://github.com/user-attachments/assets/aae2df3b-be36-4454-a867-84d825a83cd1)
-
+```bash
+;
+; BIND reverse data file for local loopback interface
+;
+$TTL    604800
+@       IN      SOA     au-team.irpo root.au-team.irpo. (
+                              1         ; Serial
+                         604800         ; Refresh
+                          86400         ; Retry
+                        2419200         ; Expire
+                         604800 )       ; Negative Cache TTL
+;
+@       IN      NS      au-team.irpo.
+1.100   IN      PTR     hq-rtr
+10.100  IN      PTR     hq-srv
+5.200   IN      PTR     hq-cli
+```
 Файл /etc/bind/named.conf.default-zones, в нём прописываем все имеющиеся зоны:
+```bash
+zone "au-team.irpo" {
+        type master;
+        file "/etc/bind/au-team.irpo";
+};
 
-![image](https://github.com/user-attachments/assets/9ec5e6e3-fb46-436a-9f7e-c6d03cdbc7ba)
+zone "16.172.in-addr.arpa" {
+        type master;
+        file "/etc/bind/au-team.reverse";
+};
+```
 
-### 10. Настройка даты и времени согласно месту проведения экзамена
+### 10. Настройка даты и времени согласно месту проведения экзамена</summary> 
 
 Установка часового пояса выполняется с помощью следущей команды:
 ``` bash
 timedatectl set-timezone Asia/Tomsk
 ```
+
+
+## Модуль 2 
+
+### 1. Настройка домена на Samba
+
+
+
+
+### 2. Конфигурация файлового хранилища
+
+Для создания RAID массива необходимо установить утилиту mdadm:
+
+``` bash
+apt install mdadm
+```
+Далее в своей системе виртуализации необходимо добавить диски если они не добавлены.
+
+После добавления выводим все блочные устройства:
+
+``` bash
+lsblk
+```
+
+Далее необходимо создать разделы на всех трёх дисках с помощью fdisk, выбираем n для создания раздела и жмём далее до конца.
+
+Теперь скопируем разделы с /dev/sdb с помощью sfdisk:
+
+```bash
+sfdisk -d /dev/sdb > sdb_parts.txt
+```
+И скопируем эту таблицу разделов на оставшиеся диски:
+``` bash
+sfdisk /dev/sdc < sdb_parts.txt
+sfdisk /dev/sdd < sdb_parts.txt
+```
+Теперь создаём массив с помощью следующей команды:
+``` bash
+mdadm --create --verbose /dev/md127 -l 5 -n 3 /dev/sdb1 /dev/sdc1 /dev/sdd1
+```
+Для вывода информации о массиве: 
+``` bash
+mdadm --detail /dev/md127
+```
+
+По умолчанию mdadm не создаёт своей конфигурации, поэтому согласно заданию добавим ёё с помощью следующей команды:
+``` bash
+mdadm --detail --scan --verbose >> /etc/mdadm/mdadm.conf
+```
+Далее создаём файловую систему на массиве:
+```bash
+mkfs.ext4 /dev/md127
+```
+Создаём директорию для монтирования:
+```bash
+mkdir /raid5
+```
+Для автоматического монтирования в файле /etc/fstab пропишем строчку:
+```bash
+/dev/md127 /raid5 ext4 defaults 0 0
+```
+После выполняем команды:
+```bash
+systemctl daemon-reload
+mount -a
+```
+Возможно нужно выполнить эту команду для того, чтобы массив не заменялся на 127 после перезагрузки
+```bash
+update-initramfs -u
+```
+
+Далее устанавливае серверную часть NFS:
+
+```bash
+apt install nfs-kernel-server
+```
+
+Создаём директорию внутри /raid5:
+``` bash
+mkdir /raid5/nfs
+```
+
+Далее необходимо назначить права на директорию nfs:
+
+
+Для того, чтобы расшарить директорию необходимо отредактировать файл /etc/exports :
+``` bash
+/raid5/nfs 172.16.200.0/28(rw,sync,no_root_squash,subtree_check)
+```
+Выполняем команду:
+```bash
+exportsfs -a
+```
+
+на HQ-CLI устанавливаем клиентскую часть nfs:
+```bash
+apt install nfs-common
+```
+
+Создаём директорию:
+```bash
+mkdir /mnt/nfs
+```
+
+Монтируем сетевую папку в директорию /mnt/nfs :
+``` bash
+mount -t nfs 172.16.100.10:/raid5/nfs /mnt/nfs
+```
+
+Для автоматического монтирования на клиенте в /etc/fstab прописываем следующую строку:
+```bash
+
+
+
 
 
 
