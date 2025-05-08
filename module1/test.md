@@ -461,7 +461,9 @@ mkdir /raid5/nfs
 ```
 
 Далее необходимо назначить права на директорию nfs:
-
+```bash
+chmod 777 /raid5/nfs
+```
 
 Для того, чтобы расшарить директорию необходимо отредактировать файл /etc/exports :
 ``` bash
@@ -489,6 +491,77 @@ mount -t nfs 172.16.100.10:/raid5/nfs /mnt/nfs
 
 Для автоматического монтирования на клиенте в /etc/fstab прописываем следующую строку:
 ```bash
+172.16.100.10:/raid5/nfs /mnt/nfs nfs auto 0 0
+```
+
+### 3. Настройка синхронизации времени
+
+На HQ-RTR устанавливаем chrony:
+
+```bash
+apt install chrony
+```
+
+Приводим файл /etc/chrony/chrony.conf к следующему виду:
+
+```bash
+server 127.0.0.1 iburst prefer
+local stratum 5
+allow 172.16.100.0/26
+allow 172.16.50.0/27
+allow 172.16.200.0/28
+allow 10.10.0.0/30
+```
+Далее на всех машинах кроме HQ-RTR и ISP, также устанавливаем chrony и указываем адрес HQ-RTR в качестве сервера времени
+
+```bash
+server 172.16.100.1
+```
+На HQ-RTR для вывода всех подключенных клиентов:
+``` bash
+chronyc clients
+```
+На клиентах:
+``` bash
+chronyc sources
+```
+
+### 4. Конфигурация ansible на BR-SRV
+
+На BR-SRV устанавливаем ansible
+
+```bash
+apt install ansible
+```
+
+Следующим шагом необходимо раскидать ssh ключи, на все машины кроме ISP и BR-SRV:
+Делаем под юзером sshuser
+```bash
+ssh-keygen
+ssh-copy-id -p 2024 sshuser@172.16.100.10
+```
+Создать каталог /etc/ansible:
+```bash
+mkdir /etc/ansible
+```
+
+Приводим файл инвентаря к следующему виду:
+```bash
+[hq]
+172.16.100.10 ansible_ssh_private_key_file=/home/sshuser/.ssh/ansible_rsa ansible_port=2024 ansible_user=sshuser 
+172.16.200.4 ansible_user=locadm ansible_ssh_private_key_file=/home/sshuser/.ssh/ansible_rsa 
+172.16.100.1 ansible_user=net_admin ansible_ssh_private_key_file=/home/sshuser/.ssh/ansible_rsa 
+
+[br]
+172.16.50.1 ansible_user=net_admin ansible_ssh_private_key_file=/home/sshuser/.ssh/ansible_rsa 
+```
+
+
+
+
+
+
+
 
 
 
