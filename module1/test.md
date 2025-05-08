@@ -558,6 +558,77 @@ mkdir /etc/ansible
 172.16.50.1 ansible_user=net_admin ansible_ssh_private_key_file=/home/sshuser/.ssh/ansible_rsa 
 ```
 
+Проверяем работоспособность с помощью команды:
+```bash
+ansible all -m ping
+```
+
+### 5. Развёртывание приложения MediaWiki в Docker
+
+Устанавливаем docker с помощью скрипта, предварительно его скачав:
+```bash
+curl -fsSL https://get.docker.com -o get-docker.sh
+sudo sh get-docker.sh
+```
+Формируем файл wiki.yml следующим образом:
+```bash
+services:
+  MediaWiki:
+    container_name: wiki
+    image: mediawiki
+    restart: always
+    ports:
+      - 8080:80
+    links:
+      - database
+    volumes:
+      - images:/var/www/html/images
+    # - ./LocalSettings.php:/var/www/html/LocalSettings.php
+  database:
+    container_name: mariadb
+    image: mariadb
+    environment:
+      MYSQL_DATABASE: mediawiki
+      MYSQL_USER: wiki
+      MYSQL_PASSWORD: WikiP@ssw0rd
+      MYSQL_RANDOM_ROOT_PASSWORD: 'yes'
+    volumes:
+      - dbvolume:/var/lib/mariadb
+
+volumes:
+  dbvolume:
+    external: true
+  images:
+```
+Создаем волюм для докера:
+``` bash
+docker volume create dbvolume
+```
+Далее запускаем docker compose:
+
+```bash
+docker compose -f wiki.yml up -d
+```
+
+После завершения установки и указания основных параметров, забираем файл LocalSetting.php и отправляем его на BR-SRV в домашнюю директорию sshuser с помощью scp
+```bash
+scp LocalSettings.php -P 2024 sshuser@172.16.50.10:/home/sshuser
+```
+
+Правим wiki.yml, убираем лишний комментарий
+
+Останавливаем контейнеры:
+```bash
+docker compose -f wiki.yml stop
+```
+Снова запускаем
+```bash
+docker compose -f wiki.yml up -d
+```
+
+
+
+
 
 
 
