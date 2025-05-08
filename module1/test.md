@@ -535,7 +535,9 @@ apt install ansible
 ```
 
 Следующим шагом необходимо раскидать ssh ключи, на все машины кроме ISP и BR-SRV:
+
 Делаем под юзером sshuser
+
 ```bash
 ssh-keygen
 ssh-copy-id -p 2024 sshuser@172.16.100.10
