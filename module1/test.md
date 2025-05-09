@@ -64,16 +64,16 @@ auto lo
 iface lo inet loopback
 
 # The primary network interface
-allow-hotplug ens18
-iface ens18 inet dhcp
+allow-hotplug ens192
+iface ens192 inet dhcp
 
-auto ens19
-iface ens19 inet static
+auto ens224
+iface ens224 inet static
 address 172.16.4.1
 netmask 255.255.255.240
 
-auto ens20
-iface ens20 inet static
+auto ens256
+iface ens256 inet static
 address 172.16.5.1
 netmask 255.255.255.240
 ```
@@ -115,8 +115,8 @@ apt install iptables iptables-persistent
 ```
 Создание правил iptables на ISP
 ``` bash
-iptables –t nat –A POSTROUTING –s 172.16.4.0/28 –o ens18 –j MASQUERADE  
-iptables –t nat –A POSTROUTING –s 172.16.5.0/28 –o ens18 –j MASQUERADE  
+iptables –t nat –A POSTROUTING –s 172.16.4.0/28 –o ens192–j MASQUERADE  
+iptables –t nat –A POSTROUTING –s 172.16.5.0/28 –o ens192 –j MASQUERADE  
 iptables-save > /etc/iptables/rules.v4
 ```
 В опции -o должен быть именно out-interface выходящий во внешнюю сеть (прокололся на этом)
@@ -130,43 +130,43 @@ echo 8021q >> /etc/modules
 ```
 Файл /etc/network/interfaces для HQ-RTR
 ``` bash
-auto ens18
-iface ens18 inet static
+auto ens192
+iface ens192 inet static
 address 172.16.4.2
 netmask 255.255.255.240
 gateway 172.16.4.1
 
-auto ens19
-iface ens19 inet static
+auto ens224
+iface ens224 inet static
 address 172.16.100.1
 netmask 255.255.255.192
 
-auto ens19:1
-iface ens19:1 inet static
+auto ens224:1
+iface ens224:1 inet static
 address 172.16.200.1
 netmask 255.255.255.240
 
-auto ens19.100
-iface ens19.100 inet static
+auto ens224.100
+iface ens224.100 inet static
 address 172.16.100.3
 netmask 255.255.255.192
-vlan-raw-device ens19
+vlan-raw-device ens224
 
-auto ens19.200
-iface ens19.200 inet static
+auto ens224.200
+iface ens224.200 inet static
 address 172.16.200.3
 netmask 255.255.255.240
-vlan-raw-device ens19:1
+vlan-raw-device ens224:1
 ```
 Создание правил iptables на HQ-RTR 
 ``` bash
-iptables –t nat –A POSTROUTING –s 172.16.100.0/26 –o ens18 –j MASQUERADE
-iptables -t nat -A POSTROUTING -s 172.16.200.0/28 -o ens18 -j MASQUERADE
+iptables –t nat –A POSTROUTING –s 172.16.100.0/26 –o ens192 –j MASQUERADE
+iptables -t nat -A POSTROUTING -s 172.16.200.0/28 -o ens192 -j MASQUERADE
 iptables-save > /etc/iptables/rules.v4
 ```
 Создание правил iptables на BR-RTR
 ``` bash
-iptables -t nat -A POSTROUTING -s 172.16.50.0/27 -o ens18 -j MASQUERADE
+iptables -t nat -A POSTROUTING -s 172.16.50.0/27 -o ens192 -j MASQUERADE
 iptables-save > /etc/iptables/rules.v4
 ```
 
@@ -306,8 +306,8 @@ host myhost {
 
 На HQ-CLI в /etc/network/interfaces:
 ```bash
-auto ens18
-iface ens18 inet dhcp
+auto ens192
+iface ens192 inet dhcp
 ```
 
 ### 9. Настройка DNS сервера на HQ-SRV
