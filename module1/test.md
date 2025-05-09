@@ -626,9 +626,74 @@ docker compose -f wiki.yml stop
 docker compose -f wiki.yml up -d
 ```
 
+### 6. Статическая трансляция портов 
 
+Проброс порта 80 в порт 8080 на BR-SRV на маршрутизаторе BR-RTR:
+```bash
+iptables -t nat -A PREROUTING -p tcp --dport 80 -j DNAT --to-destination 172.16.50.10:8080
+```
+Проброс порта 2024 в порт 2024:
+``` bash
+iptables -t nat -A PREROUTING -p tcp --dport 2024 -j DNAT --to-destination 172.16.50.10:2024
+```
+Не забываем сделать iptables-save > /etc/iptables/rules.v4
 
+Проброс порта 2024 в порт 2024 на HQ-RTR:
+```bash
+iptables -t nat -A PREROUTING -p tcp --dport 2024 -j DNAT --to-destination 172.16.100.10:2024
+```
 
+### 7. Настройка сервиса moodle на HQ-SRV
+
+Устанавливаем apache2 и mariadb:
+```bash
+apt install apache2 mariadb-server
+```
+
+Установка необходимых модулей php
+```bash
+apt install php php-mysql libapache2-mod-php php-xml php-mbstring php-zip php-curl php-gd php-intl php-soap
+```
+
+Меняем значение переменной в /etc/php/8.2/apache/php.ini:
+```bash
+max_input_vars=6000
+```
+Создаём базу данных, пользователя, выдаём привилегии на базу:
+```bash
+CREATE DATABASE moodledb DEFAULT CHARACTER SET utf8;
+CREATE USER moodle@localhost IDENTIFIED BY 'P@ssw0rd';
+GRANT ALL ON moodledb.* TO 'moodle'@'localhost';
+flush privileges;
+```
+
+С сайта moodle.org скачиваем архив tgz с файлами moodle и перекидываем его на HQ-SRV с помощью scp
+
+Распаковать архив в /var/www/html:
+```bash
+tar -xzvf moodle.tgz
+```
+Выдать права и задать группу и пользователя www-data:
+```bash
+chown -R www-data:www-data /var/www/html
+chmod -R 755 /var/www/html
+```
+Создаём каталог /var/moodledata и выдаём необходимые права на каталог:
+```bash
+mkdir /var/moodledata
+chmod -R 755 /var/moodledata
+chown -R www-data:www-data /var/moodledata
+```
+Удаляем файл index.html 
+```bash
+rm /var/www/html/index.html
+```
+
+Далее на клиенте HQ-CLI выполняем установку и указываем все основные параметры созданные ранее
+
+![изображение](https://github.com/user-attachments/assets/eefe717a-d09c-4ebe-a254-73ef6605fce5)
+
+### 8. 
 
 
 
