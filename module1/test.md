@@ -693,7 +693,52 @@ rm /var/www/html/index.html
 
 ![изображение](https://github.com/user-attachments/assets/eefe717a-d09c-4ebe-a254-73ef6605fce5)
 
-### 8. 
+### 8. Настройка nginx как обратного прокси на HQ-RTR
+
+Установка nginx 
+```
+apt install nginx
+```
+Создаём файл конфига в /etc/nginx/sites-available/hq-rtr.conf:
+``` bash
+server {
+        listen 80;
+        server_name moodle.au-team.irpo;
+
+        location / {
+        proxy_pass http://172.16.100.10:80;
+        }
+}
+
+
+server {
+        listen 80;
+        server_name wiki.au-team.irpo;
+
+        location / {
+        proxy_pass http://172.16.50.10:8080;
+        }
+}
+```
+Делаем сим-линк для файла конфига в sites-enabled:
+```bash
+ln -s /etc/nginx/sites-available/hq-rtr.conf /etc/nginx/sites-enabled/hq-rtr-conf
+```
+Рестартуем сервис:
+```bash
+systemctl restart nginx
+```
+Проверка синтаксиса конфигурации nginx
+
+```bash
+nginx -t
+```
+
+### 9. Установка браузера
+Заготовил уже готовый пакет на своем сервере, либо просто добавить в сурс листы репозитории дебиана и установить через apt
+```bash
+apt install yandex-browser-corporate
+```
 
 
 
