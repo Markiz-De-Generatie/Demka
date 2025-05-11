@@ -395,6 +395,33 @@ timedatectl set-timezone Asia/Tomsk
 
 ### 1. Настройка домена на Samba
 
+Обновленный конфиг bind для работоспособности Samba:
+```bash
+;
+; BIND data file for local loopback interface
+;
+$TTL    604800
+@       IN      SOA     au-team.irpo    root.au-team.irpo. (
+                              2         ; Serial
+                         604800         ; Refresh
+                          86400         ; Retry
+                        2419200         ; Expire
+                         604800 )       ; Negative Cache TTL
+;
+@       IN      NS      au-team.irpo.
+@       IN      A       172.16.100.10
+hq-rtr  IN      A       172.16.100.1
+hq-srv  IN      A       172.16.100.10
+br-rtr  IN      A       172.16.50.1
+br-srv  IN      A       172.16.50.10
+hq-cli  IN      A       172.16.200.4
+moodle  IN      CNAME   hq-rtr
+wiki    IN      CNAME   hq-rtr
+_ldap._tcp.au-team.irpo. IN SRV 0 5 389 br-srv.au-team.irpo.
+_kerberos._tcp.au-team.irpo.        IN      SRV     0 100 88  br-srv.au-team.irpo.
+_kdc._tcp.au-team.irpo.             IN      SRV     0 100 88  br-srv.au-team.irpo.
+_kpasswd._tcp.au-team.irpo.         IN      SRV     0 100 464 br-srv.au-team.irpo.
+```
 
 
 
