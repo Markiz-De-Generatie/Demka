@@ -438,6 +438,7 @@ cp /etc/krb5.conf /etc/krb5.conf.bak
 cp /var/lib/samba/private/krb5.conf /etc/krb5.conf
 ```
 Файл должен выглядеть следующим образом:
+
 ![изображение](https://github.com/user-attachments/assets/1b2d983f-edbe-495c-bc32-764894833190)
 
 Останавливаем следующие сервисы и убираем их из автозагрузки:
