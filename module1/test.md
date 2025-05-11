@@ -395,6 +395,86 @@ timedatectl set-timezone Asia/Tomsk
 
 ### 1. Настройка домена на Samba
 
+Задаём полный хостнейм с доменом для BR-SRV и HQ-CLI:
+```bash
+hostnamectl hostname br-srv.au-team.irpo
+hostnamectl hostname hq-cli.au-team.irpo
+```
+На каждой из машин добавляем записи в /etc/hosts с соответствующими именами и адресами
+```bash
+172.16.50.10 br-srv.au-team.irpo br-srv
+```
+```bash
+172.16.200.4 hq-cli.au-team.irpo hq-cli
+```
+На BR-SRV в /etc/resolv.conf прописываем еще один nameserver:
+```bash
+nameserver 172.16.50.10
+```
+На BR-SRV устанавливаем следующие пакеты:
+```bash
+apt install samba krb5-config krb5-user winbind smbclient
+```
+При появлении окон псевдографики в первом окне указываем домен большими буквами без br-srv:
+```
+AU-TEAM.IRPO
+```
+Во всех остальных следующим образом:
+```
+br-srv.au-team.irpo
+```
+
+Копируем конфигурацию samba по умолчанию и удаляем smb.conf
+```bash
+cp /etc/samba/smb.conf /etc/samba/smb.conf.bak
+rm /etc/samba/smb.conf
+```
+Далее выполняем следующую команду для инициализации домена(в качестве forwarder адреса выступает HQ-SRV):
+![изображение](https://github.com/user-attachments/assets/187b26cd-3fc6-4034-b683-93309d3bd2ad)
+
+Далее копируем стандартную конфигурацию kerberos для бэкапа, на место krb5.conf копируем файл сгенерированный samba:
+```bash
+cp /etc/krb5.conf /etc/krb5.conf.bak
+cp /var/lib/samba/private/krb5.conf /etc/krb5.conf
+```
+Файл должен выглядеть следующим образом:
+![изображение](https://github.com/user-attachments/assets/1b2d983f-edbe-495c-bc32-764894833190)
+
+Останавливаем следующие сервисы и убираем их из автозагрузки:
+```bash
+systemctl stop smbd nmbd winbind
+systemctl disable smbd nmbd winbind
+```
+Делаем рестарт сервиса самбы:
+```bash
+systemc restart samba-ad-dc
+```
+Добавляем пользователей с помощью samba-tool:
+```bash
+samba-tool user create user1.hq P@ssw0rd
+samba-tool user create user2.hq P@ssw0rd
+```
+Создаём группу hq:
+```bash
+samba-tool group add hq
+```
+Добавляем ранее созданных пользователей в группу hq:
+```bash
+samba-tool group addmembers hq user1.hq,user2.hq,user3.hq,user4.hq,user5.hq
+```
+С помощью данной команды можно вывести всех пользователей:
+```bash
+samba-tool user list
+```
+
+Для присоединения к домену, на клиенте устанавливаем следующие пакеты:
+```bash
+apt install realmd sssd-tools sssd libnss-sss libpam-sss adcli packagekit -y
+```
+
+
+Далее необходимо добавить записи SRV в зону au-team.irpo, для работоспособности Samba
+
 Обновленный конфиг bind для работоспособности Samba:
 ```bash
 ;
@@ -421,6 +501,60 @@ _ldap._tcp.au-team.irpo. IN SRV 0 5 389 br-srv.au-team.irpo.
 _kerberos._tcp.au-team.irpo.        IN      SRV     0 100 88  br-srv.au-team.irpo.
 _kdc._tcp.au-team.irpo.             IN      SRV     0 100 88  br-srv.au-team.irpo.
 _kpasswd._tcp.au-team.irpo.         IN      SRV     0 100 464 br-srv.au-team.irpo.
+```
+После добавления записей  у команды realm discover должен быть подобный вывод:
+![изображение](https://github.com/user-attachments/assets/03665508-4451-442c-9dd9-c53ec06356ad)
+
+Выполняем присоединение к домену с помощью команды:
+```bash
+realm join -U Administrator br-srv.au-team.irpo
+```
+После этого устанавливаем на клиента следующий пакет:
+```bash
+apt install krb5-user
+```
+Для того чтобы при входе создавался домашний каталог пользователя, правим файл /etc/pam.d/common-session:
+```bash
+session required        pam_mkhomedir.so umask=0022 skel=/etc/skel
+```
+Для того чтобы ограничить доступ к клиентскому компьютеру только для группы hq,
+
+В файле конфигурации /etc/sssd/sssd.conf добавляем строчку(добавляем в секцию [domain/au-team.irpo]:
+```bash
+ad_access_filter = (memberOf=CN=hq,CN=Users,DC=au-team,DC=irpo)
+```
+Рестартуем sssd для применения изменений:
+```bash
+systemctl restart sssd
+sss_cache -E 
+```
+Далее пробуем залогиниться на клиентский ПК с обязательным именем домена в логине:
+![изображение](https://github.com/user-attachments/assets/c0a00d25-4025-4cc6-b7a2-4417d2004bf9)
+
+С помощью /usr/sbin/visudo добавляем разрешение на выполнение определенных программ для группы hq:
+```bash
+%hq@au-team.irpo ALL=(ALL) PASSWD:/usr/bin/cat,/usr/bin/grep,/usr/bin/id
+```
+
+Если файл для импорта Users.csv все же будет на демке, вот скрипт для добавления пользователей:
+
+```bash
+#!/bin/bash
+
+FILE="/opt/Users.csv"
+
+while IFS=';' read -r firstname lastname role phone ou street zip city country password; do
+    samba-tool user add "$firstname.$lastname" "$password"
+done < <(tail -n +2 "$FILE")
+```
+
+Не забываем дать права на исполнение скрипта:
+```bash
+chmod +x samba-ad-users.sh
+```
+Выполняем скрипт:
+```bash
+sudo bash samba-ad-users.sh
 ```
 
 
