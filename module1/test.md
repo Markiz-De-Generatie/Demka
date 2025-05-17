@@ -400,10 +400,11 @@ timedatectl set-timezone Asia/Tomsk
 hostnamectl hostname br-srv.au-team.irpo
 hostnamectl hostname hq-cli.au-team.irpo
 ```
-На каждой из машин добавляем записи в /etc/hosts с соответствующими именами и адресами
+Для BR-SRV прописываем следующую строку в файле /etc/hosts:
 ```bash
 172.16.50.10 br-srv.au-team.irpo br-srv
 ```
+Для HQ-CLI также прописываем следующую строку в файле /etc/hosts:
 ```bash
 172.16.200.4 hq-cli.au-team.irpo hq-cli
 ```
@@ -468,13 +469,13 @@ samba-tool group addmembers hq user1.hq,user2.hq,user3.hq,user4.hq,user5.hq
 samba-tool user list
 ```
 
-Для присоединения к домену, на клиенте устанавливаем следующие пакеты:
+Для присоединения к домену, на клиенте HQ-CLI устанавливаем следующие пакеты:
 ```bash
 apt install realmd sssd-tools sssd libnss-sss libpam-sss adcli packagekit -y
 ```
 
 
-Далее необходимо добавить записи SRV в зону au-team.irpo, для работоспособности Samba
+Далее необходимо добавить записи SRV в зону au-team.irpo на HQ-SRV, для работоспособности Samba
 
 Обновленный конфиг bind для работоспособности Samba:
 ```bash
@@ -506,7 +507,7 @@ _kpasswd._tcp.au-team.irpo.         IN      SRV     0 100 464 br-srv.au-team.irp
 После добавления записей  у команды realm discover должен быть подобный вывод:
 ![изображение](https://github.com/user-attachments/assets/03665508-4451-442c-9dd9-c53ec06356ad)
 
-Выполняем присоединение к домену с помощью команды:
+Выполняем присоединение к домену клиента HQ-CLI с помощью команды:
 ```bash
 realm join -U Administrator br-srv.au-team.irpo
 ```
@@ -560,7 +561,7 @@ sudo bash samba-ad-users.sh
 
 
 
-### 2. Конфигурация файлового хранилища
+### 2. Конфигурация файлового хранилища на HQ-SRV
 
 Для создания RAID массива необходимо установить утилиту mdadm:
 
@@ -667,7 +668,7 @@ mount -t nfs 172.16.100.10:/raid5/nfs /mnt/nfs
 172.16.100.10:/raid5/nfs /mnt/nfs nfs auto 0 0
 ```
 
-### 3. Настройка синхронизации времени
+### 3. Настройка синхронизации времени 
 
 На HQ-RTR устанавливаем chrony:
 
@@ -782,13 +783,14 @@ docker volume create dbvolume
 ```bash
 docker compose -f wiki.yml up -d
 ```
+После запуска compose заходим на HQ-CLI!!!!(MISHANYA BLYA) в браузере вбиваем адрес BR-SRV с номером порта 8080.
 
 После завершения установки и указания основных параметров, забираем файл LocalSetting.php и отправляем его на BR-SRV в домашнюю директорию sshuser с помощью scp
 ```bash
 scp LocalSettings.php -P 2024 sshuser@172.16.50.10:/home/sshuser
 ```
 
-Правим wiki.yml, убираем лишний комментарий
+Правим wiki.yml, убираем лишний комментарий у строки LocalSettings.php
 
 Останавливаем контейнеры:
 ```bash
