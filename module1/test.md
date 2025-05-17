@@ -504,6 +504,32 @@ _kerberos._tcp.au-team.irpo.        IN      SRV     0 100 88  br-srv.au-team.irp
 _kdc._tcp.au-team.irpo.             IN      SRV     0 100 88  br-srv.au-team.irpo.
 _kpasswd._tcp.au-team.irpo.         IN      SRV     0 100 464 br-srv.au-team.irpo.
 ```
+DNSMASQ GOVNO, NE TAK LI MISHANYA?
+
+
+![chigurh](https://github.com/user-attachments/assets/699230d8-bfca-4147-aa3c-ea9ec6d96bfd)
+
+CNAME ZAPISI NE PROVERYAL, NO DOLZNO RABOTAT`.
+```bash
+no-resolv
+interface=ens224
+read-ethers
+listen-address=192.168.100.2
+server=8.8.8.8
+server=8.8.4.4
+address=/hq-rtr.au-team.irpo/192.168.100.1
+address=/hq-srv.au-team.irpo/192.168.100.2
+address=/br-rtr.au-team.irpo/192.168.0.1
+address=/br-srv.au-team.irpo/192.168.0.2
+address=/hq-cli.au-team.irpo/192.168.200.4
+srv-host=_ldap._tcp.au-team.irpo,br-srv.au-team.irpo,389
+srv-host=_kerberos._tcp.au-team.irpo,br-srv.au-team.irpo,88
+srv-host=_kdc._tcp.au-team.irpo,br-srv.au-team.irpo,88
+srv-host=_kpasswd._tcp.au-team.irpo,br-srv,au-team.irpo,464
+cname=wiki.au-team.irpo,hq-rtr.au-team.irpo
+cname=moodle.au-team.irpo,hq-rtr.au-team.irpo
+```
+
 После добавления записей  у команды realm discover должен быть подобный вывод:
 ![изображение](https://github.com/user-attachments/assets/03665508-4451-442c-9dd9-c53ec06356ad)
 
