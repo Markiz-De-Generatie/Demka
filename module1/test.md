@@ -940,6 +940,7 @@ nginx -t
 Заготовил уже готовый пакет на своем сервере, либо просто добавить в сурс листы репозитории дебиана и установить через apt
 
 https://disk.yandex.ru/d/o3CqXgmxdjhO7g
+
 Пакет по умолчанию скачивается в домашнюю директорию из под пользователя под которым сидите, то есть если это locadm, то /home/locadm/Downloads
 ```bash
 dpkg -i /home/locadm/Downloads/YandexBrowser.deb
