@@ -937,8 +937,15 @@ nginx -t
 
 ### 9. Установка браузера
 Заготовил уже готовый пакет на своем сервере, либо просто добавить в сурс листы репозитории дебиана и установить через apt
+
+https://disk.yandex.ru/d/o3CqXgmxdjhO7g
+
 ```bash
-apt install yandex-browser-corporate
+dpkg -i YandexBrowser.deb
+```
+Возможно потребуется установить зависимости для пакета:
+```bash
+apt --fix-broken install 
 ```
 
 
