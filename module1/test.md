@@ -939,14 +939,27 @@ nginx -t
 Заготовил уже готовый пакет на своем сервере, либо просто добавить в сурс листы репозитории дебиана и установить через apt
 
 https://disk.yandex.ru/d/o3CqXgmxdjhO7g
-
+Пакет по умолчанию скачивается в домашнюю директорию из под пользователя под которым сидите, то есть если это locadm, то /home/locadm/Downloads
 ```bash
-dpkg -i YandexBrowser.deb
+dpkg -i /home/locadm/Downloads/YandexBrowser.deb
 ```
-Возможно потребуется установить зависимости для пакета:
+Возможно выдаст такую ошибку:
+
+![изображение](https://github.com/user-attachments/assets/1882f0e1-af54-4983-be96-810daa5fb25a)
+
+Для устранения выполняем команду:
+```bash
+source /etc/profile
+```
+И потом ещё раз:
+```bash
+dpkg -i /home/locadm/Downloads/YandexBrowser.deb
+```
+Потом выполняем:
 ```bash
 apt --fix-broken install 
 ```
+Радуемся легчайшим баллам.
 
 
 
